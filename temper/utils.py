@@ -36,7 +36,7 @@ def log_temp():
     # Open a file with today's date in /var/log/temps, write the temp to it.
     logfile = '/'.join([TEMP_LOGS, 'temps_{0}.log'.format(datetime.strftime(datetime.now(), '%Y%m%d'))])
     f = open(logfile, 'a')
-    f.write('{0},{1}\n'.format(datetime.utcnow().isoformat(), read_onewire_temp()))
+    f.write('{0},{1}\n'.format(datetime.strftime(datetime.now(), '%Y-%m-%dT%H:%M:%S'), read_onewire_temp()))
     f.close()
 
 
