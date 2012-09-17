@@ -1,7 +1,11 @@
 #!/usr/bin/python
+import os
 import subprocess
 import time
-from datetime import datetime
+from datetime import datetime, date
+
+
+TEMP_LOGS = '/var/log/temps'
 
 
 def read_onewire_temp():
@@ -30,9 +34,31 @@ def read_onewire_temp():
 
 def log_temp():
     # Open a file with today's date in /var/log/temps, write the temp to it.
-    f = open('/var/log/temps/temps_{0}.log'.format(datetime.strftime(datetime.now(), '%Y%m%d')), 'a')
-    f.write('{0},{1}\n'.format(datetime.now().isoformat(), read_onewire_temp()))
+    logfile = '/'.join([TEMP_LOGS, 'temps_{0}.log'.format(datetime.strftime(datetime.now(), '%Y%m%d'))])
+    f = open(logfile, 'a')
+    f.write('{0},{1}\n'.format(datetime.utcnow().isoformat(), read_onewire_temp()))
     f.close()
+
+
+def read_log(log_date=None):
+    # log_date should be a valid Python date object.
+    if log_date:
+        # Test to see if a log file exists for the nominated date.
+        logfile = '/'.join([TEMP_LOGS, 'temps_{0}.log'.format(datetime.strftime(log_date, '%Y%m%d'))])
+    else:
+        # Try using today's date instead.
+        logfile = '/'.join([TEMP_LOGS, 'temps_{0}.log'.format(datetime.strftime(date.today(), '%Y%m%d'))])
+    if os.path.exists(logfile):
+        # Open the logfile and iterate over it. Return a list of tuples:
+        # (datetime_string, float)
+        temps = []
+        f = open(logfile, 'r')
+        for l in f.readlines():
+            l = l.strip().split(',')  # Strip newline char, split on comma.
+            temps.append((l[0], float(l[1])))
+        return temps
+    else:
+        return None
 
 
 if __name__ == "__main__":
