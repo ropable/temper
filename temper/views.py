@@ -8,14 +8,17 @@ from datetime import datetime
 def favicon():
     return app.send_static_file('favicon.ico')
 
+'''
 @app.route('/')
 def index():
     temps_list = utils.read_log()
     return render_template('index.html', home_page=True)
+'''
 
+@app.route('/')
 @app.route('/temps/')
 def log_date_today():
-    temps_li = utils.read_log(datetime.today())
+    temps_li = utils.read_log()
     return render_template('temp_graph.html', log_date=log_date, temps_li=json.dumps(temps_li))
 
 @app.route('/temps/<int:year>/<int:month>/<int:day>')
