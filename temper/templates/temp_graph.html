@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="row-fluid">
+    <div class="span12">
+        <h1>Temperature log</h1>
+        <div id="graph-placeholder" style="width: 600px; height: 400px;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.7/jquery.flot.min.js"></script>
+<script type="text/javascript">
+    var temps_li = {{ temps_li|safe }};
+    // Interate over the array and convert times to milliseconds.
+    $.each(temps_li, function() {
+        d = Date.parse(this[0]).getTime();
+        this[0] = d;
+    });
+    // Create the graph.
+    $.plot($("#graph-placeholder"), [temps_li], {xaxis: {mode: "time"}});
+</script>
+{% endblock %}
