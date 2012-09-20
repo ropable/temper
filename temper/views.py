@@ -1,6 +1,6 @@
 import json
 from flask import request, render_template
-from temper import app, utils
+from temper import app, utils, cache
 from datetime import datetime
 
 
@@ -11,6 +11,7 @@ def favicon():
 
 @app.route('/')
 @app.route('/temps')
+@cache.cached()
 def temps_week():
     # Read up to 7 days-worth of log files.
     temps_li = utils.read_logs(n=7)
@@ -18,6 +19,7 @@ def temps_week():
 
 
 @app.route('/temps/all')
+@cache.cached()
 def temps_all():
     # Read all log files.
     temps_li = utils.read_logs()
@@ -25,6 +27,7 @@ def temps_all():
 
 
 @app.route('/temps/<int:year>/<int:month>/<int:day>')
+@cache.memoize(timeout=60 * 60 * 24)  # Cache 24h
 def log_date(year, month, day):
     # Read the log file for the specifed date.
     log_date = '{0}-{1}-{2}'.format(year, month, day)
