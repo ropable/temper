@@ -33,6 +33,9 @@ def read_onewire_temp():
 
 
 def log_temp():
+    '''
+    Log a temperature reading to a file with a timestamp.
+    '''
     # Open a file with today's date in /var/log/temps, write the temp to it.
     logfile = '/'.join([TEMP_LOGS, 'temps_{0}.log'.format(datetime.strftime(datetime.now(), '%Y%m%d'))])
     f = open(logfile, 'a')
@@ -41,6 +44,10 @@ def log_temp():
 
 
 def read_log(log_date=None):
+    '''
+    Read in the temperature log for the specifed date, split each line of comma separated values
+    into a list of tuples and return them.
+    '''
     # log_date should be a valid Python date object.
     if log_date:
         # Test to see if a log file exists for the nominated date.
@@ -59,6 +66,22 @@ def read_log(log_date=None):
         return temps
     else:
         return None
+
+
+def read_logs(n=None):
+    '''
+    Read n number of temperature log files (or all files if n is None).
+    '''
+    logs = sorted(os.listdir(TEMP_LOGS))
+    temps = []
+    if n and len(logs) > n:
+        # Only return n logs.
+        logs = logs[-n:]
+    for log in logs:
+        # Parse the date from the file name.
+        log_date = datetime.strptime(log[6:14], '%Y%m%d')
+        temps += read_log(log_date)
+    return sorted(temps)
 
 
 if __name__ == "__main__":
