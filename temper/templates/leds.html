@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/bootstrap-toggle-buttons.css">
+{% endblock %}
+
+
+{% block body %}
+<div class="row-fluid">
+    <div class="span12">
+        <h1>LED Controller</h1>
+        <label for="gpio17-toggle-button">GPIO pin 17:</label>
+        <div id="gpio17-toggle-button" data-gpio="17">
+            <input id="checkbox-gpio17" type="checkbox" value="gpio17" checked="checked">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/jquery.toggle.buttons.js"></script>
+<script type="text/javascript">
+    $('#gpio17-toggle-button').toggleButtons({
+        onChange: function ($el, status, e) {
+            //console.log($el, status);
+            //console.log($($el).parent().data("gpio"));
+            $.post("/gpio_mode", {gpio: 17, mode: 0},
+                function(data) {
+                    console.log(data);
+                }
+            )
+        }
+    });
+</script>
+{% endblock %}

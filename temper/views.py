@@ -1,5 +1,5 @@
 import json
-from flask import request, render_template
+from flask import request, render_template, jsonify
 from temper import app, utils, cache
 from datetime import datetime
 
@@ -10,6 +10,9 @@ def favicon():
 
 
 @app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/temps')
 @cache.cached()
 def temps_week():
@@ -34,3 +37,20 @@ def log_date(year, month, day):
     log_date = datetime.strptime(log_date, '%Y-%m-%d')
     temps_li = utils.read_log(log_date)
     return render_template('temp_graph.html', log_date=log_date, temps_li=json.dumps(temps_li))
+
+
+@app.route('/leds')
+def led_controller():
+    return render_template('leds.html')
+
+
+@app.route('/gpio_mode', methods=['POST'])
+def gpio_mode():
+    # Read the GPIO and mode arguments from the POST request.
+    gpio = int(request.form['gpio'])
+    mode = int(request.form['mode'])
+    return jsonify({'gpio': gpio, 'mode': mode})
+#if gpio and mode:  # NOTE: mode == 0 evaluates to False. Duh!
+    #    return jsonify({'gpio': gpio, 'mode': mode})
+    #else:
+    #    return '{}'
