@@ -1,4 +1,6 @@
+#!/usr/bin/python
 import json
+import subprocess
 from flask import request, render_template, jsonify
 from temper import app, utils, cache
 from datetime import datetime
@@ -41,7 +43,10 @@ def log_date(year, month, day):
 
 @app.route('/leds')
 def led_controller():
-    return render_template('leds.html')
+    # Read in the current GPIO pin config and pass it to the template.
+    # Temporarily just make something up:
+    gpio_config = [{'id': 17, 'mode': 0}, {'id': 18, 'mode': 0}, {'id': 21, 'mode': 0}]
+    return render_template('leds.html', gpio_config=gpio_config)
 
 
 @app.route('/gpio_mode', methods=['POST'])
@@ -49,8 +54,8 @@ def gpio_mode():
     # Read the GPIO and mode arguments from the POST request.
     gpio = int(request.form['gpio'])
     mode = int(request.form['mode'])
-    return jsonify({'gpio': gpio, 'mode': mode})
-#if gpio and mode:  # NOTE: mode == 0 evaluates to False. Duh!
-    #    return jsonify({'gpio': gpio, 'mode': mode})
-    #else:
-    #    return '{}'
+    if gpio in [17, 18, 21] and mode in [0, 1]:  # NOTE: mode == 0 evaluates to False. Duh!
+        subprocess.call('gpio -g write {0} {1}'.format(gpio, mode), shell=True)
+        return jsonify({'gpio': gpio, 'mode': mode})
+    else:
+        return '{}'

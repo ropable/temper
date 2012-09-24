@@ -9,10 +9,20 @@
 <div class="row-fluid">
     <div class="span12">
         <h1>LED Controller</h1>
-        <label for="gpio17-toggle-button">GPIO pin 17:</label>
-        <div id="gpio17-toggle-button" data-gpio="17">
-            <input id="checkbox-gpio17" type="checkbox" value="gpio17" checked="checked">
-        </div>
+        <table class="table" style="width:auto;">
+            {% for g in gpio_config %}
+            <tr>
+                <td>
+                    GPIO pin {{ g.id }}:
+                </td>
+                <td>
+                    <div class="gpio-toggle" id="toggle-button-gpio{{ g.id }}" data-gpio="{{ g.id }}">
+                        <input type="checkbox"{% if g.mode %} checked="checked"{% endif %}>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
     </div>
 </div>
 {% endblock %}
@@ -20,16 +30,25 @@
 {% block extra_js %}
 <script src="/static/js/jquery.toggle.buttons.js"></script>
 <script type="text/javascript">
-    $('#gpio17-toggle-button').toggleButtons({
+{% for g in gpio_config %}
+    $('#toggle-button-gpio' + {{ g.id }}).toggleButtons({
         onChange: function ($el, status, e) {
-            //console.log($el, status);
+            //console.log(status);
             //console.log($($el).parent().data("gpio"));
-            $.post("/gpio_mode", {gpio: 17, mode: 0},
+            var pinmode;
+            if (status==true) {
+                pinmode = 1
+            }
+            else {
+                pinmode = 0
+            };
+            $.post("/gpio_mode", {gpio: {{ g.id }}, mode: pinmode},
                 function(data) {
                     console.log(data);
                 }
             )
         }
     });
+{% endfor %}
 </script>
 {% endblock %}

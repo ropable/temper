@@ -3,9 +3,7 @@ import os
 import subprocess
 import time
 from datetime import datetime, date
-
-
-TEMP_LOGS = '/var/log/temps'
+from temper import app
 
 
 def read_onewire_temp():
@@ -37,7 +35,7 @@ def log_temp():
     Log a temperature reading to a file with a timestamp.
     '''
     # Open a file with today's date in /var/log/temps, write the temp to it.
-    logfile = '/'.join([TEMP_LOGS, 'temps_{0}.log'.format(datetime.strftime(datetime.now(), '%Y%m%d'))])
+    logfile = '/'.join([app.config['TEMP_LOGS'], 'temps_{0}.log'.format(datetime.strftime(datetime.now(), '%Y%m%d'))])
     f = open(logfile, 'a')
     f.write('{0},{1}\n'.format(datetime.strftime(datetime.now(), '%Y-%m-%dT%H:%M:%S'), read_onewire_temp()))
     f.close()
@@ -51,10 +49,10 @@ def read_log(log_date=None):
     # log_date should be a valid Python date object.
     if log_date:
         # Test to see if a log file exists for the nominated date.
-        logfile = '/'.join([TEMP_LOGS, 'temps_{0}.log'.format(datetime.strftime(log_date, '%Y%m%d'))])
+        logfile = '/'.join([app.config['TEMP_LOGS'], 'temps_{0}.log'.format(datetime.strftime(log_date, '%Y%m%d'))])
     else:
         # Try using today's date instead.
-        logfile = '/'.join([TEMP_LOGS, 'temps_{0}.log'.format(datetime.strftime(date.today(), '%Y%m%d'))])
+        logfile = '/'.join([app.config['TEMP_LOGS'], 'temps_{0}.log'.format(datetime.strftime(date.today(), '%Y%m%d'))])
     if os.path.exists(logfile):
         # Open the logfile and iterate over it. Return a list of tuples:
         # (datetime_string, float)
@@ -72,7 +70,7 @@ def read_logs(n=None):
     '''
     Read n number of temperature log files (or all files if n is None).
     '''
-    logs = sorted(os.listdir(TEMP_LOGS))
+    logs = sorted(os.listdir(app.config['TEMP_LOGS']))
     temps = []
     if n and len(logs) > n:
         # Only return n logs.
@@ -82,6 +80,11 @@ def read_logs(n=None):
         log_date = datetime.strptime(log[6:14], '%Y%m%d')
         temps += read_log(log_date)
     return sorted(temps)
+
+
+import json
+def gpio_config():
+    print os.path.dirname(os.path.abspath(__file__))
 
 
 if __name__ == "__main__":
