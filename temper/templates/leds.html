@@ -13,10 +13,10 @@
             {% for g in gpio_config %}
             <tr>
                 <td>
-                    GPIO pin {{ g.id }}:
+                    GPIO pin {{ g.gpio }}:
                 </td>
                 <td>
-                    <div class="gpio-toggle" id="toggle-button-gpio{{ g.id }}" data-gpio="{{ g.id }}">
+                    <div class="gpio-toggle" id="toggle-button-gpio{{ g.gpio }}" data-gpio="{{ g.gpio }}">
                         <input type="checkbox"{% if g.mode %} checked="checked"{% endif %}>
                     </div>
                 </td>
@@ -31,7 +31,7 @@
 <script src="/static/js/jquery.toggle.buttons.js"></script>
 <script type="text/javascript">
 {% for g in gpio_config %}
-    $('#toggle-button-gpio' + {{ g.id }}).toggleButtons({
+    $('#toggle-button-gpio' + {{ g.gpio }}).toggleButtons({
         onChange: function ($el, status, e) {
             //console.log(status);
             //console.log($($el).parent().data("gpio"));
@@ -42,7 +42,7 @@
             else {
                 pinmode = 0
             };
-            $.post("/gpio_mode", {gpio: {{ g.id }}, mode: pinmode},
+            $.post("/gpio_mode", {gpio: {{ g.gpio }}, mode: pinmode},
                 function(data) {
                     console.log(data);
                 }

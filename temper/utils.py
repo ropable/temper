@@ -1,10 +1,12 @@
 #!/usr/bin/python
 import os
+import json
 import subprocess
 import time
 from datetime import datetime, date
 from temper import app
 
+script_path = os.path.dirname(os.path.abspath(__file__))
 
 def read_onewire_temp():
     '''
@@ -82,9 +84,26 @@ def read_logs(n=None):
     return sorted(temps)
 
 
-import json
-def gpio_config():
-    print os.path.dirname(os.path.abspath(__file__))
+def read_gpio_config():
+    '''
+    Read the GPIO pin config from the config file.
+    '''
+    cfg = open(os.path.join(script_path, app.config['GPIO_CFG']), 'r')
+    gpio = json.loads(cfg.readline())
+    cfg.close()
+    return gpio
+
+
+def write_gpio_config(cfg):
+    '''
+    Write the GPIO pin config to the config file.
+    '''
+    if not isinstance(cfg, list):
+        return
+    cfg_file = open(os.path.join(script_path, app.config['GPIO_CFG']), 'w')
+    cfg_file.write(json.dumps(cfg))
+    cfg_file.close()
+    return
 
 
 if __name__ == "__main__":
