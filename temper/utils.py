@@ -16,7 +16,7 @@ def read_onewire_temp():
     '''
     crc_ok = False
     tries = 0
-    temp= None
+    temp = None
     while not crc_ok and tries < 20:
         # Bitbang the 1-wire interface.
         s = subprocess.check_output('cat /sys/bus/w1/devices/28-*/w1_slave', shell=True).strip()

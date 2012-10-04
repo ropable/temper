@@ -4,6 +4,7 @@
 <div class="row-fluid">
     <div class="span12">
         <h1>Temperature log</h1>
+        <h3>Current: {{ current_temp}} &deg;C</h3>
         <div id="graph-placeholder" style="width: 100%; height: 600px;"></div>
     </div>
 </div>
@@ -11,7 +12,7 @@
 
 {% block extra_js %}
 <script src="//cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.7/jquery.flot.min.js"></script>
+<script src="//code.highcharts.com/highcharts.js"></script>
 <script type="text/javascript">
     var temps_li = {{ temps_li|safe }};
     // Interate over the array and convert times to milliseconds.
@@ -20,6 +21,36 @@
         this[0] = d;
     });
     // Create the graph.
-    $.plot($("#graph-placeholder"), [temps_li], {xaxis: {mode: "time"}});
+    //$.plot($("#graph-placeholder"), [temps_li], {xaxis: {mode: "time"}});
+    $(function() {
+        chart1 = new Highcharts.Chart({
+            chart: {renderTo: "graph-placeholder", type: 'spline'},
+            title: {text: "Temperature history"},
+            xAxis: {type: "datetime", title: {text: "Date"}},
+            yAxis: {title: {text: 'Degrees C'}},
+            plotOptions: {
+                series: {
+                    marker: {
+                        enabled: false,
+                        states: {
+                            hover: {
+                                enabled: true
+                            }
+                        }
+                    }
+                }
+            },
+            tooltip: {
+                formatter: function() {
+                        return '<b>'+ this.series.name +'</b><br/>'+
+                        Highcharts.dateFormat('%d-%b %H:%M', this.x) +': '+ this.y +'C';
+                }
+            },
+            series: [{
+                name: 'Office',
+                data: temps_li
+            }]
+        });
+    });
 </script>
 {% endblock %}

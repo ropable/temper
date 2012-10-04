@@ -17,11 +17,12 @@ def index():
     return render_template('index.html')
 
 @app.route('/temps')
-@cache.cached()
+#@cache.cached()
 def temps_week():
     # Read up to 7 days-worth of log files.
     temps_li = utils.read_logs(n=7)
-    return render_template('temp_graph.html', log_date=log_date, temps_li=json.dumps(temps_li))
+    current_temp = '{:.1f}'.format(temps_li[-1][1])
+    return render_template('temp_graph.html', log_date=log_date, current_temp=current_temp, temps_li=json.dumps(temps_li))
 
 
 @app.route('/temps/all')
@@ -29,7 +30,8 @@ def temps_week():
 def temps_all():
     # Read all log files.
     temps_li = utils.read_logs()
-    return render_template('temp_graph.html', log_date=log_date, temps_li=json.dumps(temps_li))
+    current_temp = '{:.1f}'.format(temps_li[-1][1])
+    return render_template('temp_graph.html', log_date=log_date, current_temp=current_temp, temps_li=json.dumps(temps_li))
 
 
 @app.route('/temps/<int:year>/<int:month>/<int:day>')
@@ -39,7 +41,8 @@ def log_date(year, month, day):
     log_date = '{0}-{1}-{2}'.format(year, month, day)
     log_date = datetime.strptime(log_date, '%Y-%m-%d')
     temps_li = utils.read_log(log_date)
-    return render_template('temp_graph.html', log_date=log_date, temps_li=json.dumps(temps_li))
+    current_temp = '{:.1f}'.format(temps_li[-1][1])
+    return render_template('temp_graph.html', log_date=log_date, current_temp=current_temp, temps_li=json.dumps(temps_li))
 
 
 @app.route('/leds')
