@@ -20,10 +20,10 @@
         d = Date.parse(this[0]).getTime();
         this[0] = d;
     });
-    // Create the graph.
-    //$.plot($("#graph-placeholder"), [temps_li], {xaxis: {mode: "time"}});
+    // Create the chart.
     $(function() {
-        chart1 = new Highcharts.Chart({
+        Highcharts.setOptions({global: {useUTC: false}});
+        var chart1 = new Highcharts.Chart({
             chart: {renderTo: "graph-placeholder", type: 'spline'},
             title: {text: "Temperature history"},
             xAxis: {type: "datetime", title: {text: "Date"}},
