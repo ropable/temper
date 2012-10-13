@@ -62,7 +62,10 @@ def read_log(log_date=None):
         f = open(logfile, 'r')
         for l in f.readlines():
             l = l.strip().split(',')  # Strip newline char, split on comma.
-            temps.append((l[0], float(l[1])))
+            if l[1] == 'None':  # Account for failed temp readings.
+                pass
+            else:
+                temps.append((l[0], float(l[1])))
         return temps
     else:
         return None
