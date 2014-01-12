@@ -8,39 +8,56 @@ from temper import app
 
 script_path = os.path.dirname(os.path.abspath(__file__))
 
-def read_onewire_temp():
+def read_onewire_temps():
     '''
     Read in the output of /sys/bus/w1/devices/28-*/w1_slave
+    NOTE: each OneWire device returns two lines of output.
     If the CRC check is bad, wait and try again (up to 20 times).
     Return the temp as a float, or None if reading failed.
     '''
     crc_ok = False
     tries = 0
-    temp = None
+    temps = []
+    crc = []
     while not crc_ok and tries < 20:
         # Bitbang the 1-wire interface.
         s = subprocess.check_output('cat /sys/bus/w1/devices/28-*/w1_slave', shell=True).strip()
         lines = s.split('\n')
-        line0 = lines[0].split()
-        if line0[-1] == 'YES':  # CRC check was good.
+        data = zip(lines[0::2], lines[1::2])  # Convert lines into a list of tuples.
+        device_count = len(data)
+        for i in data:
+            line0 = i[0].split()
+            if line0[-1] == 'YES':  # CRC check was good.
+                crc.append(True)
+            else:
+                crc.append(False)
+        if all(crc):
             crc_ok = True
-            line1 = lines[1].split()
-            temp = float(line1[-1][2:])/1000
+            for i in data:
+                line1 = i[1].split()
+                temps.append(round(float(line1[-1][2:])/1000, 1))
+        else:
+            crc = []
         # Sleep approx 20ms between attempts.
         time.sleep(0.02)
         tries += 1
-    return temp
+    return temps
 
 
-def log_temp():
+def log_temps():
     '''
-    Log a temperature reading to a file with a timestamp.
+    Log temperature readings to a files with a timestamp.
+    For each temperature reading, open a file with today's date in /var/log/temps,
+    then write the temp to it.
+    Log name: temps_X_YYmmdd.log
     '''
-    # Open a file with today's date in /var/log/temps, write the temp to it.
-    logfile = '/'.join([app.config['TEMP_LOGS'], 'temps_{0}.log'.format(datetime.strftime(datetime.now(), '%Y%m%d'))])
-    f = open(logfile, 'a')
-    f.write('{0},{1}\n'.format(datetime.strftime(datetime.now(), '%Y-%m-%dT%H:%M:%S'), read_onewire_temp()))
-    f.close()
+    temps = read_onewire_temps()
+    for idx, temp in enumerate(temps):
+        logfile = '/'.join([app.config['TEMP_LOGS'], 'temps_{0}_{1}.log'.format(
+            idx, datetime.strftime(datetime.now(), '%Y%m%d'))])
+        f = open(logfile, 'a')
+        f.write('{0},{1}\n'.format(datetime.strftime(datetime.now(), '%Y-%m-%dT%H:%M:%S'), temp))
+        f.close()
 
 
 def read_log(log_date=None):
@@ -110,4 +127,4 @@ def write_gpio_config(cfg):
 
 
 if __name__ == "__main__":
-    log_temp()
+    log_temps()
