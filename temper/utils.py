@@ -3,7 +3,7 @@ import os
 import json
 import subprocess
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from temper import app
 
 script_path = os.path.dirname(os.path.abspath(__file__))
@@ -62,46 +62,47 @@ def log_temps():
 
 def read_log(log_date=None):
     '''
-    Read in the temperature log for the specifed date, split each line of comma separated values
-    into a list of tuples and return them.
+    Read in the temperature logs for the specifed date, split each line of comma separated values
+    into a list of tuples and return them as a dict: {'sensor1': [(date, temp), ...], ...}
+    log_date should be a valid Python date object.
     '''
-    # log_date should be a valid Python date object.
-    if log_date:
-        # Test to see if a log file exists for the nominated date.
-        logfile = '/'.join([app.config['TEMP_LOGS'], 'temps_{0}.log'.format(datetime.strftime(log_date, '%Y%m%d'))])
-    else:
-        # Try using today's date instead.
-        logfile = '/'.join([app.config['TEMP_LOGS'], 'temps_{0}.log'.format(datetime.strftime(date.today(), '%Y%m%d'))])
-    if os.path.exists(logfile):
-        # Open the logfile and iterate over it. Return a list of tuples:
-        # (datetime_string, float)
+    if not log_date:
+        log_date = date.today()  # Use today's date instead.
+    log_date = datetime.strftime(log_date, '%Y%m%d')
+    logs = sorted(['/'.join([app.config['TEMP_LOGS'], f]) for f in os.listdir(app.config['TEMP_LOGS']) if log_date in f])
+    d = {}
+    for idx, log in enumerate(logs):
         temps = []
-        f = open(logfile, 'r')
+        f = open(log, 'r')
         for l in f.readlines():
             l = l.strip().split(',')  # Strip newline char, split on comma.
             if l[1] == 'None':  # Account for failed temp readings.
                 pass
             else:
                 temps.append((l[0], float(l[1])))
-        return temps
-    else:
-        return None
+        # Finally add the temps to our dict.
+        d[app.config['TEMP_SENSORS'][idx]] = temps
+    return d
 
 
-def read_logs(n=None):
+def read_n_logs(n=None):
     '''
-    Read n number of temperature log files (or all files if n is None).
+    Read n days' worth of temperature log files.
     '''
-    logs = sorted(os.listdir(app.config['TEMP_LOGS']))
-    temps = []
-    if n and len(logs) > n:
-        # Only return n logs.
-        logs = logs[-n:]
-    for log in logs:
-        # Parse the date from the file name.
-        log_date = datetime.strptime(log[6:14], '%Y%m%d')
-        temps += read_log(log_date)
-    return sorted(temps)
+    logs = {}
+    # If n is specified, return only n logs.
+    if n:
+        n -= 1  # 1 becomes 0, so we return today's logs.
+        while n >= 0:
+            check_date = date.today() - timedelta(days=n)
+            d = read_log(check_date)
+            for k, v in d.iteritems():
+                if k in logs:  # Sensor has existing data; merge it.
+                    logs[k] += v
+                else:  # No existing data for this sensor.
+                    logs[k] = v
+            n -= 1
+    return logs
 
 
 def read_gpio_config():

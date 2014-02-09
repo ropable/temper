@@ -20,7 +20,7 @@ def index():
 #@cache.cached()
 def temps_week():
     # Read up to 7 days-worth of log files.
-    temps_li = utils.read_logs(n=7)
+    temps_li = utils.read_n_logs(n=7)
     current_temp = '{:.1f}'.format(temps_li[-1][1])
     return render_template('temp_graph.html', log_date=log_date, current_temp=current_temp, temps_li=json.dumps(temps_li))
 
