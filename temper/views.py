@@ -17,32 +17,35 @@ def index():
     return render_template('index.html')
 
 @app.route('/temps')
-#@cache.cached()
+@cache.cached()
 def temps_week():
     # Read up to 7 days-worth of log files.
-    temps_li = utils.read_n_logs(n=7)
-    current_temp = '{:.1f}'.format(temps_li[-1][1])
-    return render_template('temp_graph.html', log_date=log_date, current_temp=current_temp, temps_li=json.dumps(temps_li))
+    temps = utils.read_n_logs(n=7)
+    #current_temp = '{:.1f}'.format(temps_li[-1][1])
+    return render_template('temp_graph.html', temps_json=json.dumps(temps))
 
 
-@app.route('/temps/all')
-@cache.cached()
-def temps_all():
-    # Read all log files.
-    temps_li = utils.read_logs()
-    current_temp = '{:.1f}'.format(temps_li[-1][1])
-    return render_template('temp_graph.html', log_date=log_date, current_temp=current_temp, temps_li=json.dumps(temps_li))
+#@app.route('/temps/all')
+#@cache.cached()
+#def temps_all():
+#    # Read all log files.
+#    temps = utils.read_logs()
+#    #current_temp = '{:.1f}'.format(temps_li[-1][1])
+#    return render_template('temp_graph.html', log_date=log_date, temps_json=json.dumps(temps))
 
 
 @app.route('/temps/<int:year>/<int:month>/<int:day>')
 @cache.memoize(timeout=60 * 60 * 24)  # Cache 24h
-def log_date(year, month, day):
+def temps_date(year, month, day):
     # Read the log file for the specifed date.
     log_date = '{0}-{1}-{2}'.format(year, month, day)
     log_date = datetime.strptime(log_date, '%Y-%m-%d')
-    temps_li = utils.read_log(log_date)
-    current_temp = '{:.1f}'.format(temps_li[-1][1])
-    return render_template('temp_graph.html', log_date=log_date, current_temp=current_temp, temps_li=json.dumps(temps_li))
+    temps = utils.read_log(log_date)
+    #current_temp = '{:.1f}'.format(temps_li[-1][1])
+    return render_template(
+        'temp_graph.html',
+        log_date=datetime.strftime(log_date, '%A, %d %B %Y'),
+        temps_json=json.dumps(temps))
 
 
 @app.route('/leds')

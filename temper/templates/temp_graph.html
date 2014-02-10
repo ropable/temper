@@ -3,8 +3,8 @@
 {% block body %}
 <div class="row-fluid">
     <div class="span12">
-        <h1>Temperature log</h1>
-        <h3>Current: {{ current_temp}} &deg;C</h3>
+        <h1>Temperature log{% if log_date %}: {{ log_date }}{% endif %}</h1>
+        {#<h3>Current: {{ current_temp}} &deg;C</h3>#}
         <div id="graph-placeholder" style="width: 100%; height: 600px;"></div>
     </div>
 </div>
@@ -14,12 +14,6 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/datejs/1.0/date.min.js"></script>
 <script src="//code.highcharts.com/highcharts.js"></script>
 <script type="text/javascript">
-    var temps_li = {{ temps_li|safe }};
-    // Interate over the array and convert times to milliseconds.
-    $.each(temps_li, function() {
-        d = Date.parse(this[0]).getTime();
-        this[0] = d;
-    });
     // Create the chart.
     $(function() {
         Highcharts.setOptions({global: {useUTC: false}});
@@ -45,12 +39,23 @@
                         return '<b>'+ this.series.name +'</b><br/>'+
                         Highcharts.dateFormat('%d-%b %H:%M', this.x) +': '+ this.y +'C';
                 }
-            },
-            series: [{
-                name: 'Office',
-                data: temps_li
-            }]
+            }
         });
+        var temps = {{ temps_json|safe }};
+        // Iterate over the temps dict to add each series.
+        for (var sensor in temps) {
+            // Interate over the array and convert times to milliseconds.
+            $.each(temps[sensor], function() {
+                d = Date.parse(this[0]).getTime();
+                this[0] = d;
+            });
+            // Add the series to the chart, redraw==false.
+            chart1.addSeries({
+                name: sensor,
+                data: temps[sensor]
+            }, false);
+        }
+        chart1.redraw();
     });
 </script>
 {% endblock %}
